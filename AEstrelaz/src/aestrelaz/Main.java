@@ -3,10 +3,12 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-//package aestrelaz;
+package aestrelaz;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.PriorityQueue;
 import java.util.Scanner;
@@ -16,6 +18,7 @@ import java.util.Scanner;
  * @author guest-tqterz
  */
 class Main {
+
     // 9 movimentos
     // 2 1 5 9 3 6 10 13 4 7 11 14 0 8 12 15
     // 15 movimentos
@@ -45,26 +48,25 @@ class Main {
         };
         No.setSolucao(objetivo);
         Scanner scan = new Scanner(System.in);
-//        long start = System.currentTimeMillis();
         for (short i = 0; i < 4; i++) {
             for (short j = 0; j < 4; j++) {
                 blocos[i][j] = scan.nextShort();
             }
         }
+        long start = System.currentTimeMillis();
         no = new No(blocos);
 
         System.out.println(no.solucionar());
-
-//        System.out.println(System.currentTimeMillis() - start);
+        System.out.println(System.currentTimeMillis() - start);
     }
 
-    static class No implements Comparable<No> {
+    static class No implements Comparable<No>, Comparator<No> {
 
         private static String solucaoHash;
 
         private String hashKey;
 
-        public static PriorityQueue<No> listaAberta = new PriorityQueue<No>();
+        public static PriorityQueueMelhorada<No> listaAberta = new PriorityQueueMelhorada<No>();
         public static HashMap<String, No> fechados = new HashMap<String, No>();
 
         private static short solucao[][] = new short[4][4];
@@ -85,12 +87,16 @@ class Main {
             this.passos = 0;
             this.hashKey = No.makeHash(estado);
             this.estado = estado;
-            this.calculaFuncaoHLinha();
+//            this.calculaFuncaoHLinha();
 
         }
 
-        public void calculaFuncaoHLinha() {
-            this.terceiraHeuristica();
+        public int calculaFuncaoHLinha() {
+            return this.primeiraHeuristica();
+        }
+
+        public int calculaF() {
+            return this.calculaFuncaoHLinha() + this.passos;
         }
 
         public short[][] getEstado() {
@@ -101,7 +107,7 @@ class Main {
             this.estado = estado;
         }
 
-        public void primeiraHeuristica() {
+        public int primeiraHeuristica() {
             int h = 0;
             for (int i = 0; i < 4; i++) {
                 for (int j = 0; j < 4; j++) {
@@ -111,6 +117,12 @@ class Main {
                 }
             }
             this.h1 = h;
+            return this.h1;
+        }
+
+        public boolean equals(Object obj) {
+            No n = (No) obj;
+            return this.hashKey.equals(n.hashKey);
         }
 
         public int segundaHeuristica() {
@@ -130,15 +142,17 @@ class Main {
 
         public int terceiraHeuristica() {
             int h = 0;
-            short[][] slucaoZ =  No.getSolucao();
+
             for (int l = 0; l < 4; l++) {
                 for (int c = 0; c < 4; c++) {
-                    short correto = slucaoZ[c][l];
-                    if (correto == 0) {
-                        correto = 16;
-                    }
-                    if (estado[c][l] != correto) {
-                        h += Math.abs(l - ((correto - 1) / 4)) + Math.abs(c - ((correto - 1) % 4));
+                    short correto = No.getSolucao()[l][c];
+
+                    if (correto != 0 && estado[l][c] != correto) {
+
+                        int hLinha = Math.abs(l - (short) Math.abs((4 * (correto / 4 - Math.floor(correto / 4)) - 1)))
+                                + Math.abs(c - (short) (correto / 4.1));
+                        h += hLinha;
+
                     }
                 }
             }
@@ -181,7 +195,7 @@ class Main {
         public static String makeHash(short[][] matriz) {
             String s = "";
             for (short[] matriz1 : matriz) {
-                for (int j = 0; j < matriz1.length; j++) {
+                for (int j = 0; j < 4; j++) {
                     s += matriz1[j];
                 }
             }
@@ -195,14 +209,10 @@ class Main {
 
         public static short[][] copy_estado(short[][] estadoOriginal) {
             short[][] resultado = new short[4][4];
-            for (short i = 0; i < estadoOriginal.length; i++) {
-                System.arraycopy(estadoOriginal[i], 0, resultado[i], 0, estadoOriginal[i].length);
+            for (short i = 0; i < 4; i++) {
+                System.arraycopy(estadoOriginal[i], 0, resultado[i], 0, 4);
             }
             return resultado;
-        }
-
-        public int calculaF() {
-            return this.h3 + this.passos;
         }
 
         public ArrayList<No> geraSucessores() {
@@ -282,7 +292,7 @@ class Main {
             listaAberta.add(this);
             while (!listaAberta.isEmpty()) {
 
-                No no = listaAberta.remove();
+                No no = listaAberta.poll();
                 fechados.put(no.hashKey, no);
 
                 if (no.hashKey.equals(No.solucaoHash)) {
@@ -294,14 +304,18 @@ class Main {
                 while (!sucessores.isEmpty()) {
                     No suc = sucessores.remove(0);
 
+                    No noFechado = fechados.get(suc.hashKey);
+                    No noAberto = listaAberta.getElement(suc, suc.getPassos());
                     if (fechados.containsKey(suc.hashKey)) {
-                        if (suc.getPassos() < suc.getNoPai().getPassos()) {
-                            fechados.remove(suc.getNoPai());
+                        if (suc.getPassos() < noFechado.getPassos()) {
+//                            System.out.println("F:" + noF.getPassos() + " \t SUC:" + suc.getPassos());
+                            fechados.remove(noFechado);
                             listaAberta.add(suc);
                         }
-                    } else if (listaAberta.contains(suc)) {
-                        if (suc.getPassos() < suc.getNoPai().getPassos()) {
-                            listaAberta.remove(suc.getNoPai());
+                    } else if (noAberto != null) {
+                        if (suc.getPassos() < noAberto.getPassos()) {
+//                            System.out.println("A:" + noAberto.getPassos() + " \t SUC:" + suc.getPassos());
+                            listaAberta.remove(noAberto);
                             listaAberta.add(suc);
                         }
                     } else {
@@ -318,6 +332,30 @@ class Main {
 
         public void setNoPai(No noPai) {
             this.noPai = noPai;
+        }
+
+        @Override
+        public int compare(No o1, No o2) {
+            System.out.println("comparou");
+            return (int) (Long.valueOf(o1.hashKey) - Long.valueOf(o2.hashKey));
+        }
+
+    }
+
+    static class PriorityQueueMelhorada<T> extends PriorityQueue<T> {
+
+        public T getElement(T obj, int passos) {
+            Iterator<T> iter = this.iterator();
+            while (iter.hasNext()) {
+                T current = iter.next();
+                No n = (No) current;
+                if (current.equals(obj)) {
+                    return current;
+                }else if(n.passos >= passos){
+                    break;
+                }
+            }
+            return null;
         }
 
     }
