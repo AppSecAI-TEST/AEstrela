@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package aestrelaz;
+//package aestrelaz;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -31,7 +31,7 @@ class Main {
     //  7 11 3 15 12 14 5 2 8   10 4 9 13 0 6 1
     // teste 6
     // 9 13 12 8 0 5 7 14 1 11 15 4 6 10 2 3
-    //DE OUTRO SITE
+    // DE OUTRO SITE
     // 2 1 3 4 5 6 7 8 9 10 11 12 13 14 15 0
     // 0 15 13 1 12 3 11 6 4 8 9 5 2 10 7 14
     /**
@@ -146,16 +146,24 @@ class Main {
             for (int l = 0; l < 4; l++) {
                 for (int c = 0; c < 4; c++) {
                     short correto = No.getSolucao()[l][c];
-
                     if (correto != 0 && estado[l][c] != correto) {
+                        short coluna2 = (short) (correto / 4);
+                        short linha2 = (short) ((short) (correto % 4) - 1);
+                        if(linha2 < 0){
+                            linha2 = 3;
+                        }
+                        
+                        
+//                        System.out.println("correto:" + correto + "\tl2:" + linha2 + "\t c2:" + coluna2);
 
-                        int hLinha = Math.abs(l - (short) Math.abs((4 * (correto / 4 - Math.floor(correto / 4)) - 1)))
-                                + Math.abs(c - (short) (correto / 4.1));
+                        short hLinha = (short) Math.abs((l - linha2) + (c - coluna2));
+//                        System.err.println("HLINHA" + hLinha);
                         h += hLinha;
 
                     }
                 }
             }
+            
             this.h3 = h;
             return h;
         }
@@ -293,6 +301,9 @@ class Main {
             while (!listaAberta.isEmpty()) {
 
                 No no = listaAberta.poll();
+                if(no.getNoPai() != null && !fechados.containsKey(no.getNoPai().hashKey)){
+                    continue;
+                }
                 fechados.put(no.hashKey, no);
 
                 if (no.hashKey.equals(No.solucaoHash)) {
@@ -309,6 +320,7 @@ class Main {
                     if (fechados.containsKey(suc.hashKey)) {
                         if (suc.getPassos() < noFechado.getPassos()) {
 //                            System.out.println("F:" + noF.getPassos() + " \t SUC:" + suc.getPassos());
+                            
                             fechados.remove(noFechado);
                             listaAberta.add(suc);
                         }
@@ -351,7 +363,7 @@ class Main {
                 No n = (No) current;
                 if (current.equals(obj)) {
                     return current;
-                }else if(n.passos >= passos){
+                } else if (n.passos >= passos) {
                     break;
                 }
             }
