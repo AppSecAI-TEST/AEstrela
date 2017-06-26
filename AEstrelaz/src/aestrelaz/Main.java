@@ -1,12 +1,11 @@
+//package aestrelaz;
+
 /*
  * To change this license header, choose License Headers in Project Properties.
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package aestrelaz;
-
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -18,7 +17,10 @@ import java.util.Scanner;
  * @author guest-tqterz
  */
 class Main {
-
+//2 1  5  9
+//3 6 10 13
+//4 7 11 14
+//0 8 12 15
     // 9 movimentos
     // 2 1 5 9 3 6 10 13 4 7 11 14 0 8 12 15
     // 15 movimentos
@@ -27,13 +29,14 @@ class Main {
     // 2 1 10 9 3 5 11 13 4 0 6 12 7 8 15 14 
     // 25 movimentos
     // 2 1 5 0 7 9 10 13 6 4 3 15 8 11 12 14
-    // teste 5
-    //  7 11 3 15 12 14 5 2 8   10 4 9 13 0 6 1
+    // 39 movimentos
+    // 1 5 7 0 4 6 12 10 8 2 15 9 3 14 11 13
     // teste 6
     // 9 13 12 8 0 5 7 14 1 11 15 4 6 10 2 3
-    //DE OUTRO SITE
+    // DE OUTRO SITE
     // 2 1 3 4 5 6 7 8 9 10 11 12 13 14 15 0
     // 0 15 13 1 12 3 11 6 4 8 9 5 2 10 7 14
+
     /**
      * @param args the command line arguments
      */
@@ -53,14 +56,16 @@ class Main {
                 blocos[i][j] = scan.nextShort();
             }
         }
-        long start = System.currentTimeMillis();
+//        long start = System.currentTimeMillis();
         no = new No(blocos);
-
+        no.makeHash();
+//        No.printaMatriz(No.getSolucao());
+//        No.printaMatriz(no.estado);
         System.out.println(no.solucionar());
-        System.out.println(System.currentTimeMillis() - start);
+//        System.out.println(System.currentTimeMillis() - start);
     }
 
-    static class No implements Comparable<No>, Comparator<No> {
+    static class No implements Comparable<No> {
 
         private static String solucaoHash;
 
@@ -72,12 +77,14 @@ class Main {
         private static short solucao[][] = new short[4][4];
 
         private int h1;
-        private int h2;
+//        private int h2;
         private int h3;
-        private int h4;
-        private int h5;
+//        private int h4;
+//        private int h5;
 
+        private short funcaoF;
         private int passos;
+        private short modPai = 0;
 
         private No noPai;
 
@@ -85,18 +92,18 @@ class Main {
 
         public No(short[][] estado) {
             this.passos = 0;
-            this.hashKey = No.makeHash(estado);
+//            this.makeHash();
             this.estado = estado;
 //            this.calculaFuncaoHLinha();
 
         }
 
         public int calculaFuncaoHLinha() {
-            return this.primeiraHeuristica();
+            return this.terceiraHeuristica();
         }
 
-        public int calculaF() {
-            return this.calculaFuncaoHLinha() + this.passos;
+        public void calculaF() {
+            this.funcaoF = (short) (this.calculaFuncaoHLinha() + this.passos);
         }
 
         public short[][] getEstado() {
@@ -120,54 +127,66 @@ class Main {
             return this.h1;
         }
 
+        @Override
         public boolean equals(Object obj) {
             No n = (No) obj;
             return this.hashKey.equals(n.hashKey);
         }
-
-        public int segundaHeuristica() {
-            int h = 0;
-            int ordem = 1;
-            for (int i = 0; i < 4; i++) {
-                for (int j = 0; j < 4; j++) {
-                    if (estado[i][j] != ordem) {
-                        h++;
-                    }
-                    ordem++;
-                }
-            }
-            this.h2 = h;
-            return h;
-        }
+//
+//        public int segundaHeuristica() {
+//            int h = 0;
+//            int ordem = 1;
+//            for (int i = 0; i < 4; i++) {
+//                for (int j = 0; j < 4; j++) {
+//                    if (estado[i][j] != ordem) {
+//                        h++;
+//                    }
+//                    ordem++;
+//                }
+//            }
+//            this.h2 = h;
+//            return h;
+//        }
 
         public int terceiraHeuristica() {
             int h = 0;
-
             for (int l = 0; l < 4; l++) {
                 for (int c = 0; c < 4; c++) {
-                    short correto = No.getSolucao()[l][c];
-
-                    if (correto != 0 && estado[l][c] != correto) {
-
-                        int hLinha = Math.abs(l - (short) Math.abs((4 * (correto / 4 - Math.floor(correto / 4)) - 1)))
-                                + Math.abs(c - (short) (correto / 4.1));
-                        h += hLinha;
-
+                    short pos = estado[l][c];
+                    if (estado[l][c] == No.getSolucao()[l][c]) {
+                        continue;
                     }
+                    if (pos == 0) {
+                        pos = 16;
+                    }
+                    short coluna2 = (short) Math.floor(pos / 4.1);
+                    short linha2 = (short) (Math.floor((pos - 1) % 4));
+
+                    short hLinha = (short) Math.abs((linha2 - l) + (coluna2 - c));
+//                    System.out.println("estado:" + estado[l][c] + "\tl2:" + linha2 + "\t c2:" + coluna2 + "\tH LInha: " + hLinha);
+                    h += hLinha;
+
                 }
             }
+//            System.out.println("h:" + h);
+//            System.exit(0);
             this.h3 = h;
             return h;
         }
 
-        public int quintaHeuristica() {
-            this.h5 = Math.max(h1, Math.max(h2, h3));
-            return this.h5;
-        }
-
+//        public int quintaHeuristica() {
+//            this.h5 = Math.max(h1, Math.max(h2, h3));
+//            return this.h5;
+//        }
         public static void setSolucao(short[][] solucao) {
+            String s = "";
+            for (short[] matriz1 : solucao) {
+                for (int j = 0; j < 4; j++) {
+                    s += matriz1[j];
+                }
+            }
+            No.solucaoHash = s;
             No.solucao = solucao;
-            No.solucaoHash = No.makeHash(solucao);
         }
 
         public static short[][] getSolucao() {
@@ -182,7 +201,7 @@ class Main {
             return no.hashKey.equals(No.solucaoHash);
         }
 
-        public static void printaMatriz(int[][] matriz) {
+        public static void printaMatriz(short[][] matriz) {
             for (int i = 0; i < matriz.length; i++) {
                 for (int j = 0; j < matriz[i].length; j++) {
                     System.out.print("\t " + matriz[i][j]);
@@ -192,19 +211,20 @@ class Main {
             System.out.println("");
         }
 
-        public static String makeHash(short[][] matriz) {
+        public void makeHash() {
             String s = "";
-            for (short[] matriz1 : matriz) {
+            for (short[] matriz1 : this.getEstado()) {
                 for (int j = 0; j < 4; j++) {
                     s += matriz1[j];
                 }
             }
-            return s;
+            this.hashKey = s;
         }
 
         @Override
         public int compareTo(No o) {
-            return this.calculaF() - o.calculaF();
+
+            return this.funcaoF - o.funcaoF;
         }
 
         public static short[][] copy_estado(short[][] estadoOriginal) {
@@ -221,56 +241,63 @@ class Main {
                 for (int j = 0; j < 4; j++) {
                     if (this.estado[i][j] == 0) {
                         if (i != 0) {
-                            No up = new No(copy_estado(this.estado));
-                            up.passos = this.passos + 1;
-                            up.setNoPai(this);
+                            if (this.getNoPai() == null || this.modPai != -1) {
+                                No up = new No(copy_estado(this.estado));
+                                up.passos = this.passos + 1;
+                                up.setNoPai(this);
+                                up.modPai = 1;
 
-                            short aux = up.estado[i][j];
-                            up.estado[i][j] = up.estado[i - 1][j];
-                            up.estado[i - 1][j] = aux;
+                                short aux = up.estado[i][j];
+                                up.estado[i][j] = up.estado[i - 1][j];
+                                up.estado[i - 1][j] = aux;
+                                up.makeHash();
 
-                            up.hashKey = No.makeHash(up.estado);
-
-                            sucessores.add(up);
+                                sucessores.add(up);
+                            }
                         }
                         if (i != 3) {
+                            if (this.getNoPai() == null || this.modPai != 1) {
 
-                            No down = new No(copy_estado(this.estado));
-                            down.passos = this.passos + 1;
-                            down.setNoPai(this);
+                                No down = new No(copy_estado(this.estado));
+                                down.passos = this.passos + 1;
+                                down.setNoPai(this);
 
-                            short aux = down.estado[i][j];
-                            down.estado[i][j] = down.estado[i + 1][j];
-                            down.estado[i + 1][j] = aux;
-
-                            down.hashKey = No.makeHash(down.estado);
-
-                            sucessores.add(down);
+                                short aux = down.estado[i][j];
+                                down.estado[i][j] = down.estado[i + 1][j];
+                                down.estado[i + 1][j] = aux;
+                                down.modPai = -1;
+                                down.makeHash();
+                                sucessores.add(down);
+                            }
                         }
                         if (j != 0) {
-                            No left = new No(copy_estado(this.estado));
-                            left.passos = this.passos + 1;
-                            left.setNoPai(this);
+                            if (this.getNoPai() == null || this.modPai != -2) {
+                                No left = new No(copy_estado(this.estado));
+                                left.passos = this.passos + 1;
+                                left.setNoPai(this);
 
-                            short aux = left.estado[i][j];
-                            left.estado[i][j] = left.estado[i][j - 1];
-                            left.estado[i][j - 1] = aux;
-
-                            left.hashKey = No.makeHash(left.estado);
-                            sucessores.add(left);
+                                short aux = left.estado[i][j];
+                                left.estado[i][j] = left.estado[i][j - 1];
+                                left.estado[i][j - 1] = aux;
+                                left.makeHash();
+                                left.modPai = 2;
+                                sucessores.add(left);
+                            }
                         }
                         if (j != 3) {
-                            No right = new No(copy_estado(this.estado));
+                            if (this.getNoPai() == null || this.modPai != 2) {
+                                No right = new No(copy_estado(this.estado));
 
-                            right.passos = this.passos + 1;
-                            right.setNoPai(this);
+                                right.passos = this.passos + 1;
+                                right.setNoPai(this);
 
-                            short aux = right.estado[i][j];
-                            right.estado[i][j] = right.estado[i][j + 1];
-                            right.estado[i][j + 1] = aux;
-
-                            right.hashKey = No.makeHash(right.estado);
-                            sucessores.add(right);
+                                short aux = right.estado[i][j];
+                                right.estado[i][j] = right.estado[i][j + 1];
+                                right.estado[i][j + 1] = aux;
+                                right.makeHash();
+                                right.modPai = -2;
+                                sucessores.add(right);
+                            }
                         }
                     }
                 }
@@ -290,9 +317,14 @@ class Main {
         public int solucionar() {
 
             listaAberta.add(this);
+
             while (!listaAberta.isEmpty()) {
 
                 No no = listaAberta.poll();
+
+                if (no.getNoPai() != null && !fechados.containsKey(no.getNoPai().hashKey)) {
+                    continue;
+                }
                 fechados.put(no.hashKey, no);
 
                 if (no.hashKey.equals(No.solucaoHash)) {
@@ -303,22 +335,24 @@ class Main {
 
                 while (!sucessores.isEmpty()) {
                     No suc = sucessores.remove(0);
-
+//                    suc.makeHash();
                     No noFechado = fechados.get(suc.hashKey);
                     No noAberto = listaAberta.getElement(suc, suc.getPassos());
+
                     if (fechados.containsKey(suc.hashKey)) {
                         if (suc.getPassos() < noFechado.getPassos()) {
-//                            System.out.println("F:" + noF.getPassos() + " \t SUC:" + suc.getPassos());
-                            fechados.remove(noFechado);
+                            fechados.remove(noFechado.hashKey);
+                            suc.calculaF();
                             listaAberta.add(suc);
                         }
                     } else if (noAberto != null) {
                         if (suc.getPassos() < noAberto.getPassos()) {
-//                            System.out.println("A:" + noAberto.getPassos() + " \t SUC:" + suc.getPassos());
                             listaAberta.remove(noAberto);
+                            suc.calculaF();
                             listaAberta.add(suc);
                         }
                     } else {
+                        suc.calculaF();
                         listaAberta.add(suc);
                     }
                 }
@@ -334,12 +368,6 @@ class Main {
             this.noPai = noPai;
         }
 
-        @Override
-        public int compare(No o1, No o2) {
-            System.out.println("comparou");
-            return (int) (Long.valueOf(o1.hashKey) - Long.valueOf(o2.hashKey));
-        }
-
     }
 
     static class PriorityQueueMelhorada<T> extends PriorityQueue<T> {
@@ -351,7 +379,7 @@ class Main {
                 No n = (No) current;
                 if (current.equals(obj)) {
                     return current;
-                }else if(n.passos >= passos){
+                } else if (n.passos >= passos) {
                     break;
                 }
             }
