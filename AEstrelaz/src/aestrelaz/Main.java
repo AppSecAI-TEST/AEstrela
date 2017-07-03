@@ -76,13 +76,13 @@ class Main {
                 blocos[i][j] = scan.nextShort();
             }
         }
-        long start = System.currentTimeMillis();
+        //long start = System.currentTimeMillis();
         no = new No(blocos);
         no.makeHash();
-//        No.printaMatriz(No.getSolucao());
+        No.printaMatriz(No.getSolucao());
 //        No.printaMatriz(no.estado);
         System.out.println(no.solucionar());
-        System.out.println(System.currentTimeMillis() - start);
+        //System.out.println(System.currentTimeMillis() - start);
     }
 
     static class No implements Comparable<No> {
@@ -119,7 +119,7 @@ class Main {
         }
 
         public int calculaFuncaoHLinha() {
-            return this.terceiraHeuristica();
+            return this.quintaHeuristica();
         }
 
         public void calculaF() {
@@ -177,7 +177,7 @@ class Main {
 
         public int terceiraHeuristica() {
             int h = 0;
-//            printaMatriz(estado);
+            printaMatriz(estado);
             for (int l = 0; l < 4; l++) {
                 for (int c = 0; c < 4; c++) {
                     short pos = estado[l][c];
@@ -188,18 +188,33 @@ class Main {
 //                        pos = 16;
 //                    }
                     short coluna2 = (short) Math.floor(pos / 4.1);
-                    short linha2 = (short) (Math.floor((pos - 1) % 4));
+//                    short linha2 = (short) (Math.floor((pos - 1) % 4));
+                    short linha2 = (short) Math.abs((4 * (pos / 4 - Math.floor(pos / 4)) - 1));
 
                     short hLinha = (short) (Math.abs(linha2 - l) + Math.abs(coluna2 - c));
-//                    System.out.println("estado:" + estado[l][c] + "\tcorreto:" + No.getSolucao()[l][c] + "\tl2:" + linha2 + "\tl>" + l + "\t c2:" + coluna2 + "\t c:" + c + "\tH LInha: " + hLinha);
+                    System.out.println("estado:" + estado[l][c] + "\tcorreto:" + No.getSolucao()[l][c] + "\tl2:" + linha2 + "\tl>" + l + "\t c2:" + coluna2 + "\t c:" + c + "\tH LInha: " + hLinha);
                     h += hLinha;
 
                 }
             }
-//            System.out.println("h:" + h);
-//            System.exit(0);
+            System.out.println("h:" + h);
+            System.exit(0);
             this.h3 = h;
             return h;
+
+
+//	     short naPosicaoErrada = 0;
+//	     for (int i = 0; i < 4; i++) {
+//		for (int j = 0; j < 4; j++) {
+//		    double valor = estado[i][j];
+//		    if (valor != 0 && valor != No.getSolucao()[i][j]) {
+//			naPosicaoErrada += Math.abs(i - (short) Math.abs((4 * (valor / 4 - Math.floor(valor / 4)) - 1)))
+//				+ Math.abs(j - (short) (valor / 4.1));
+//		    }
+//		}
+//}
+//             return naPosicaoErrada;
+
         }
 
         public int quintaHeuristica() {
@@ -211,11 +226,31 @@ class Main {
             String s = "";
             for (short[] matriz1 : solucao) {
                 for (int j = 0; j < 4; j++) {
-                    s += matriz1[j];
+                    s += No.converteParaHash(matriz1[j]);
                 }
             }
             No.solucaoHash = s;
             No.solucao = solucao;
+        }
+
+        public static String converteParaHash(Short s) {
+            if (s < 10) {
+                return String.valueOf(s);
+            }
+            switch (s) {
+                case 10:
+                    return "A";
+                case 11:
+                    return "B";
+                case 12:
+                    return "C";
+                case 13:
+                    return "D";
+                case 14:
+                    return "E";
+                default:
+                    return "F";
+            }
         }
 
         public static short[][] getSolucao() {
@@ -244,7 +279,7 @@ class Main {
             String s = "";
             for (short[] matriz1 : this.getEstado()) {
                 for (int j = 0; j < 4; j++) {
-                    s += matriz1[j];
+                    s += No.converteParaHash(matriz1[j]);
                 }
             }
             this.hashKey = s;
@@ -252,7 +287,6 @@ class Main {
 
         @Override
         public int compareTo(No o) {
-
             return this.funcaoF - o.funcaoF;
         }
 
@@ -350,13 +384,11 @@ class Main {
                 if (no.getNoPai() != null && !fechados.containsKey(no.getNoPai().hashKey)) {
                     continue;
                 }
-//                i++;
-//                if ((i % 50000) == 0) {
-//                    System.out.println("tamanho:" + listaAberta.size() + " \t passos" + no.getPassos());
-//                }
+
                 fechados.put(no.hashKey, no);
 
                 if (no.hashKey.equals(No.solucaoHash)) {
+//                    no.printaHistorico();
                     return no.passos;
                 }
 
@@ -364,7 +396,6 @@ class Main {
 
                 while (!sucessores.isEmpty()) {
                     No suc = sucessores.remove(0);
-//                    suc.makeHash();
                     No noFechado = fechados.get(suc.hashKey);
                     No noAberto = listaAberta.getElement(suc, suc.getPassos());
 
@@ -410,6 +441,15 @@ class Main {
                 }
             }
             fechados.remove(this.hashKey);
+        }
+
+        private void printaHistorico() {
+            if (this.getNoPai() != null) {
+                this.getNoPai().printaHistorico();
+                printaMatriz(this.estado);
+            } else {
+                printaMatriz(this.estado);
+            }
         }
 
     }
