@@ -1,10 +1,3 @@
-package aestrelaz;
-
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -14,52 +7,10 @@ import java.util.Scanner;
 
 /**
  *
- * @author guest-tqterz
+ * @author Fernando E. A. de Carvalho RA: 88408
  */
 class Main {
-//2 1  5  9
-//3 6 10 13
-//4 7 11 14
-//0 8 12 15
-    // 9 movimentos
-    // 2 1 5 9 3 6 10 13 4 7 11 14 0 8 12 15
-    // 15 movimentos
-    // 6 5 13 0 1 7 9 14 2 8 10 15 3 4 11 12
-    // 21 movimentos
-    // 2 1 10 9 3 5 11 13 4 0 6 12 7 8 15 14 
-    // 25 movimentos
-    // 2 1 5 0 7 9 10 13 6 4 3 15 8 11 12 14
-    // 39 movimentos
-    // 1 5 7 0 4 6 12 10 8 2 15 9 3 14 11 13
-    // teste 6
-    // 9 13 12 8 0 5 7 14 1 11 15 4 6 10 2 3
-    // DE OUTRO SITE
-    // 2 1 3 4 5 6 7 8 9 10 11 12 13 14 15 0
-    // 0 15 13 1 12 3 11 6 4 8 9 5 2 10 7 14
 
-    /*5 13 6 10 1 7 2 9 4 3 15 14 8 0 11 12
-
- 6 1 13 9 2 10 11 5 4 3 14 15 7 8 0 1
-
- 15 11 8 4 7 6 1 5 14 12 3 2 9 10 13 0
-
- 7 11 4 5 0 6 15 8 14 1 3 13 9 12 10 2
-
- 14 7 4 15 9 11 3 5 0 12 6 10 1 2 13 8
-
- 0 9 3 7 1 14 6 4 2 11 12 15 13 8 10 5
-
- 3 9 0 7 2 1 6 5 11 13 4 12 8 14 15 10
-
- 9 6 7 4 2 1 5 12 8 3 11 0 14 15 10 13
-
- 2 9 4 5 0 7 11 12 14 6 3 13 1 8 15 10
-
- 7 11 5 12 9 8 6 13 2 3 4 10 14 1 15 0
-     */
-    /**
-     * @param args the command line arguments
-     */
     public static void main(String[] args) {
         No no;
         short blocos[][] = new short[4][4];
@@ -76,13 +27,9 @@ class Main {
                 blocos[i][j] = scan.nextShort();
             }
         }
-        //long start = System.currentTimeMillis();
         no = new No(blocos);
         no.makeHash();
-        No.printaMatriz(No.getSolucao());
-//        No.printaMatriz(no.estado);
         System.out.println(no.solucionar());
-        //System.out.println(System.currentTimeMillis() - start);
     }
 
     static class No implements Comparable<No> {
@@ -101,7 +48,7 @@ class Main {
         private int h1;
         private int h2;
         private int h3;
-//        private int h4;
+        private int h4;
         private int h5;
 
         private short funcaoF;
@@ -177,49 +124,29 @@ class Main {
 
         public int terceiraHeuristica() {
             int h = 0;
-            printaMatriz(estado);
             for (int l = 0; l < 4; l++) {
                 for (int c = 0; c < 4; c++) {
                     short pos = estado[l][c];
                     if (pos == 0 || estado[l][c] == No.getSolucao()[l][c]) {
                         continue;
                     }
-//                    if (pos == 0) {
-//                        pos = 16;
-//                    }
+
                     short coluna2 = (short) Math.floor(pos / 4.1);
-//                    short linha2 = (short) (Math.floor((pos - 1) % 4));
-                    short linha2 = (short) Math.abs((4 * (pos / 4 - Math.floor(pos / 4)) - 1));
+                    short linha2 = (short) (Math.floor((pos - 1) % 4));
 
                     short hLinha = (short) (Math.abs(linha2 - l) + Math.abs(coluna2 - c));
-                    System.out.println("estado:" + estado[l][c] + "\tcorreto:" + No.getSolucao()[l][c] + "\tl2:" + linha2 + "\tl>" + l + "\t c2:" + coluna2 + "\t c:" + c + "\tH LInha: " + hLinha);
                     h += hLinha;
 
                 }
             }
-            System.out.println("h:" + h);
-            System.exit(0);
             this.h3 = h;
             return h;
-
-
-//	     short naPosicaoErrada = 0;
-//	     for (int i = 0; i < 4; i++) {
-//		for (int j = 0; j < 4; j++) {
-//		    double valor = estado[i][j];
-//		    if (valor != 0 && valor != No.getSolucao()[i][j]) {
-//			naPosicaoErrada += Math.abs(i - (short) Math.abs((4 * (valor / 4 - Math.floor(valor / 4)) - 1)))
-//				+ Math.abs(j - (short) (valor / 4.1));
-//		    }
-//		}
-//}
-//             return naPosicaoErrada;
 
         }
 
         public int quintaHeuristica() {
-//            return Math.max(this.primeiraHeuristica(), Math.max(this.segundaHeuristica(), this.terceiraHeuristica()));
-            return Math.max(this.primeiraHeuristica(), this.terceiraHeuristica());
+            this.h5 = Math.max(this.primeiraHeuristica(), Math.max(this.segundaHeuristica(), this.terceiraHeuristica()));
+            return this.h5;
         }
 
         public static void setSolucao(short[][] solucao) {
@@ -375,7 +302,6 @@ class Main {
         public int solucionar() {
 
             listaAberta.add(this);
-//            long i = 0;
 
             while (!listaAberta.isEmpty()) {
 
@@ -388,7 +314,6 @@ class Main {
                 fechados.put(no.hashKey, no);
 
                 if (no.hashKey.equals(No.solucaoHash)) {
-//                    no.printaHistorico();
                     return no.passos;
                 }
 
@@ -430,14 +355,11 @@ class Main {
         }
 
         private void removeDaListaFechada() {
-//            System.out.println("removendo 1 no");
             for (No no : this.sucessores) {
                 if (no.sucessores.size() > 0) {
                     no.removeDaListaFechada();
                 } else {
                     listaAberta.remove(no);
-//                    System.out.println(listaAberta.size());
-
                 }
             }
             fechados.remove(this.hashKey);
